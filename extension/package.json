@@ -1,0 +1,27 @@
+{
+  "name": "interview-coach-extension",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Interview Coach capture extension (Chrome MV3).",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "check": "npm run typecheck && vitest run && node build.mjs"
+  },
+  "dependencies": {
+    "fflate": "0.8.3"
+  },
+  "devDependencies": {
+    "@types/chrome": "0.3.5",
+    "@types/node": "22.20.5",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "esbuild": "0.28.2",
+    "fake-indexeddb": "6.2.6",
+    "happy-dom": "21.0.3",
+    "typescript": "5.9.3",
+    "vitest": "5.0.5"
+  }
+}

@@ -1,0 +1,2971 @@
+{
+  "$defs": {
+    "Ack": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChunkRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Every event with seq <= this is stored."
+        },
+        "type": {
+          "const": "ack",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Ack",
+      "type": "object"
+    },
+    "Capabilities": {
+      "additionalProperties": false,
+      "description": "What this session's capture could record, so later stages know what to trust or skip.",
+      "properties": {
+        "adapter_version": {
+          "type": "string"
+        },
+        "audio": {
+          "type": "boolean"
+        },
+        "exact_code": {
+          "type": "boolean"
+        },
+        "keystrokes": {
+          "enum": [
+            "none",
+            "editor_scoped"
+          ],
+          "type": "string"
+        },
+        "language": {
+          "description": "Editor language as reported by the platform.",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "practice",
+            "mock_interview",
+            "assessment"
+          ],
+          "type": "string"
+        },
+        "platform": {
+          "description": "\"leetcode\", \"hackerrank\", ...",
+          "type": "string"
+        },
+        "problem_statement": {
+          "enum": [
+            "none",
+            "scraped",
+            "manual"
+          ],
+          "type": "string"
+        },
+        "run_events": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "platform",
+        "adapter_version",
+        "language",
+        "mode",
+        "exact_code",
+        "run_events",
+        "keystrokes",
+        "problem_statement",
+        "audio",
+        "video"
+      ],
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "ChunkRef": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stream": {
+          "enum": [
+            "audio",
+            "video"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "stream",
+        "index"
+      ],
+      "title": "ChunkRef",
+      "type": "object"
+    },
+    "ClientMessage": {
+      "description": "Text frame sent by the extension.",
+      "discriminator": {
+        "mapping": {
+          "end": "#/$defs/End",
+          "event": "#/$defs/EventMessage",
+          "hello": "#/$defs/Hello",
+          "ping": "#/$defs/Ping",
+          "pong": "#/$defs/Pong"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Hello"
+        },
+        {
+          "$ref": "#/$defs/EventMessage"
+        },
+        {
+          "$ref": "#/$defs/Ping"
+        },
+        {
+          "$ref": "#/$defs/Pong"
+        },
+        {
+          "$ref": "#/$defs/End"
+        }
+      ],
+      "title": "ClientMessage"
+    },
+    "ClockOrigin": {
+      "additionalProperties": false,
+      "properties": {
+        "wall_time_utc": {
+          "description": "Wall-clock time of session_start (t = 0).",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "wall_time_utc"
+      ],
+      "title": "ClockOrigin",
+      "type": "object"
+    },
+    "CodeDiffData": {
+      "additionalProperties": false,
+      "properties": {
+        "added_lines": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "deleted_lines": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "from_id": {
+          "type": "string"
+        },
+        "to_id": {
+          "type": "string"
+        },
+        "unified_diff": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_id",
+        "to_id",
+        "added_lines",
+        "deleted_lines",
+        "unified_diff"
+      ],
+      "title": "CodeDiffData",
+      "type": "object"
+    },
+    "CodeDiffEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/CodeDiffData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "code_diff",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "CodeDiffEvent",
+      "type": "object"
+    },
+    "CodeSnapshotData": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "description": "Full editor text.",
+          "type": "string"
+        },
+        "language": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Editor language of this snapshot. Set when it differs from Capabilities.language, and on every snapshot taken before the session language is locked (at the first edit, run or submit). Absent means Capabilities.language."
+        },
+        "reason": {
+          "enum": [
+            "initial",
+            "debounce",
+            "periodic",
+            "run",
+            "submit"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "reason"
+      ],
+      "title": "CodeSnapshotData",
+      "type": "object"
+    },
+    "CodeSnapshotEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/CodeSnapshotData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "code_snapshot",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "CodeSnapshotEvent",
+      "type": "object"
+    },
+    "Communication": {
+      "additionalProperties": false,
+      "properties": {
+        "clarifying": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "testing_out_loud": {
+          "type": "string"
+        },
+        "thinking_aloud": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "thinking_aloud",
+        "clarifying",
+        "testing_out_loud"
+      ],
+      "title": "Communication",
+      "type": "object"
+    },
+    "Complexity": {
+      "additionalProperties": false,
+      "properties": {
+        "better_approach": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "optimal": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "space": {
+          "type": "string"
+        },
+        "time": {
+          "description": "e.g. \"O(n)\"",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time",
+        "space"
+      ],
+      "title": "Complexity",
+      "type": "object"
+    },
+    "Correctness": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "explanation": {
+          "description": "AI reasoning about failures and correctness.",
+          "type": "string"
+        },
+        "failed_runs": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "platform_verdict": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "wrong_answer",
+                "runtime_error",
+                "compile_error",
+                "time_limit_exceeded",
+                "memory_limit_exceeded",
+                "output_limit_exceeded",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Final submit verdict; null if never submitted."
+        },
+        "runs": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "submits": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "platform_verdict",
+        "accepted",
+        "runs",
+        "failed_runs",
+        "submits",
+        "explanation"
+      ],
+      "title": "Correctness",
+      "type": "object"
+    },
+    "End": {
+      "additionalProperties": false,
+      "properties": {
+        "final_chunk": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "Last chunk index per stream; omit streams not recorded.",
+          "propertyNames": {
+            "enum": [
+              "audio",
+              "video"
+            ]
+          },
+          "type": "object"
+        },
+        "final_seq": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": {
+          "const": "end",
+          "type": "string"
+        }
+      },
+      "required": [
+        "final_seq",
+        "type"
+      ],
+      "title": "End",
+      "type": "object"
+    },
+    "EndInfo": {
+      "additionalProperties": false,
+      "description": "Written when the extension sends `end`. Absent means the session never closed cleanly.",
+      "properties": {
+        "final_chunk": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "audio",
+              "video"
+            ]
+          },
+          "type": "object"
+        },
+        "final_seq": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "final_seq"
+      ],
+      "title": "EndInfo",
+      "type": "object"
+    },
+    "ErrorMessage": {
+      "additionalProperties": false,
+      "description": "Origin and token failures close the socket with code 4403 instead of sending an error.",
+      "properties": {
+        "code": {
+          "enum": [
+            "bad_message",
+            "schema_mismatch",
+            "session_mismatch",
+            "frame_too_large",
+            "rate_limited",
+            "disk_full",
+            "internal"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "error",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "retryable",
+        "type"
+      ],
+      "title": "ErrorMessage",
+      "type": "object"
+    },
+    "Event": {
+      "description": "Root wrapper so the union gets a named JSON Schema / generated type.",
+      "discriminator": {
+        "mapping": {
+          "code_diff": "#/$defs/CodeDiffEvent",
+          "code_snapshot": "#/$defs/CodeSnapshotEvent",
+          "focus_change": "#/$defs/FocusChangeEvent",
+          "idle": "#/$defs/IdleEvent",
+          "keystroke": "#/$defs/KeystrokeEvent",
+          "marker": "#/$defs/MarkerEvent",
+          "paste": "#/$defs/PasteEvent",
+          "problem_loaded": "#/$defs/ProblemLoadedEvent",
+          "run": "#/$defs/RunEvent",
+          "run_result": "#/$defs/RunResultEvent",
+          "session_end": "#/$defs/SessionEndEvent",
+          "session_start": "#/$defs/SessionStartEvent",
+          "speech": "#/$defs/SpeechEvent",
+          "submit": "#/$defs/SubmitEvent",
+          "submit_result": "#/$defs/SubmitResultEvent",
+          "undo": "#/$defs/UndoEvent"
+        },
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/SessionStartEvent"
+        },
+        {
+          "$ref": "#/$defs/SessionEndEvent"
+        },
+        {
+          "$ref": "#/$defs/ProblemLoadedEvent"
+        },
+        {
+          "$ref": "#/$defs/CodeSnapshotEvent"
+        },
+        {
+          "$ref": "#/$defs/CodeDiffEvent"
+        },
+        {
+          "$ref": "#/$defs/KeystrokeEvent"
+        },
+        {
+          "$ref": "#/$defs/PasteEvent"
+        },
+        {
+          "$ref": "#/$defs/UndoEvent"
+        },
+        {
+          "$ref": "#/$defs/RunEvent"
+        },
+        {
+          "$ref": "#/$defs/SubmitEvent"
+        },
+        {
+          "$ref": "#/$defs/RunResultEvent"
+        },
+        {
+          "$ref": "#/$defs/SubmitResultEvent"
+        },
+        {
+          "$ref": "#/$defs/FocusChangeEvent"
+        },
+        {
+          "$ref": "#/$defs/SpeechEvent"
+        },
+        {
+          "$ref": "#/$defs/IdleEvent"
+        },
+        {
+          "$ref": "#/$defs/MarkerEvent"
+        }
+      ],
+      "title": "Event"
+    },
+    "EventMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "event": {
+          "discriminator": {
+            "mapping": {
+              "code_diff": "#/$defs/CodeDiffEvent",
+              "code_snapshot": "#/$defs/CodeSnapshotEvent",
+              "focus_change": "#/$defs/FocusChangeEvent",
+              "idle": "#/$defs/IdleEvent",
+              "keystroke": "#/$defs/KeystrokeEvent",
+              "marker": "#/$defs/MarkerEvent",
+              "paste": "#/$defs/PasteEvent",
+              "problem_loaded": "#/$defs/ProblemLoadedEvent",
+              "run": "#/$defs/RunEvent",
+              "run_result": "#/$defs/RunResultEvent",
+              "session_end": "#/$defs/SessionEndEvent",
+              "session_start": "#/$defs/SessionStartEvent",
+              "speech": "#/$defs/SpeechEvent",
+              "submit": "#/$defs/SubmitEvent",
+              "submit_result": "#/$defs/SubmitResultEvent",
+              "undo": "#/$defs/UndoEvent"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SessionStartEvent"
+            },
+            {
+              "$ref": "#/$defs/SessionEndEvent"
+            },
+            {
+              "$ref": "#/$defs/ProblemLoadedEvent"
+            },
+            {
+              "$ref": "#/$defs/CodeSnapshotEvent"
+            },
+            {
+              "$ref": "#/$defs/CodeDiffEvent"
+            },
+            {
+              "$ref": "#/$defs/KeystrokeEvent"
+            },
+            {
+              "$ref": "#/$defs/PasteEvent"
+            },
+            {
+              "$ref": "#/$defs/UndoEvent"
+            },
+            {
+              "$ref": "#/$defs/RunEvent"
+            },
+            {
+              "$ref": "#/$defs/SubmitEvent"
+            },
+            {
+              "$ref": "#/$defs/RunResultEvent"
+            },
+            {
+              "$ref": "#/$defs/SubmitResultEvent"
+            },
+            {
+              "$ref": "#/$defs/FocusChangeEvent"
+            },
+            {
+              "$ref": "#/$defs/SpeechEvent"
+            },
+            {
+              "$ref": "#/$defs/IdleEvent"
+            },
+            {
+              "$ref": "#/$defs/MarkerEvent"
+            }
+          ]
+        },
+        "type": {
+          "const": "event",
+          "type": "string"
+        }
+      },
+      "required": [
+        "event",
+        "type"
+      ],
+      "title": "EventMessage",
+      "type": "object"
+    },
+    "Example": {
+      "additionalProperties": false,
+      "properties": {
+        "explanation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "input": {
+          "type": "string"
+        },
+        "output": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "input",
+        "output"
+      ],
+      "title": "Example",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "evidence": {
+          "description": "Cited event ids.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "title",
+        "detail",
+        "evidence"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "FocusChangeData": {
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "enum": [
+            "away",
+            "back"
+          ],
+          "type": "string"
+        },
+        "target": {
+          "enum": [
+            "tab",
+            "window",
+            "editor"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "target",
+        "state"
+      ],
+      "title": "FocusChangeData",
+      "type": "object"
+    },
+    "FocusChangeEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/FocusChangeData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "focus_change",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "FocusChangeEvent",
+      "type": "object"
+    },
+    "Hello": {
+      "additionalProperties": false,
+      "description": "Open or resume a session. Carries what the engine needs to write manifest.json.",
+      "properties": {
+        "adapter": {
+          "description": "Site adapter module name, e.g. 'leetcode'.",
+          "type": "string"
+        },
+        "capabilities": {
+          "$ref": "#/$defs/Capabilities"
+        },
+        "clock_origin": {
+          "$ref": "#/$defs/ClockOrigin"
+        },
+        "media": {
+          "$ref": "#/$defs/MediaInfo"
+        },
+        "resume_from": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "First seq the extension will (re)send; null on a new session."
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "session_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "type": {
+          "const": "hello",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "schema_version",
+        "adapter",
+        "capabilities",
+        "clock_origin",
+        "type"
+      ],
+      "title": "Hello",
+      "type": "object"
+    },
+    "IdleData": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "end",
+        "duration_s"
+      ],
+      "title": "IdleData",
+      "type": "object"
+    },
+    "IdleEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/IdleData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "idle",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "IdleEvent",
+      "type": "object"
+    },
+    "KeyCounts": {
+      "additionalProperties": false,
+      "properties": {
+        "delete": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "insert": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "navigation": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "newline": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "shortcut": {
+          "default": 0,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "KeyCounts",
+      "type": "object"
+    },
+    "KeystrokeData": {
+      "additionalProperties": false,
+      "description": "One burst of editor-scoped keys. `t` is the burst start. Never raw characters.",
+      "properties": {
+        "counts": {
+          "$ref": "#/$defs/KeyCounts"
+        },
+        "duration_s": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "duration_s",
+        "counts"
+      ],
+      "title": "KeystrokeData",
+      "type": "object"
+    },
+    "KeystrokeEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/KeystrokeData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "keystroke",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "KeystrokeEvent",
+      "type": "object"
+    },
+    "Manifest": {
+      "additionalProperties": false,
+      "properties": {
+        "capabilities": {
+          "$ref": "#/$defs/Capabilities"
+        },
+        "clock_origin": {
+          "$ref": "#/$defs/ClockOrigin"
+        },
+        "end": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EndInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "media": {
+          "$ref": "#/$defs/MediaInfo"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "type": "string"
+        },
+        "session_id": {
+          "pattern": "^[A-Za-z0-9_-]{1,64}$",
+          "type": "string"
+        },
+        "user_inputs": {
+          "$ref": "#/$defs/UserInputs"
+        }
+      },
+      "required": [
+        "session_id",
+        "capabilities",
+        "clock_origin"
+      ],
+      "title": "Manifest",
+      "type": "object"
+    },
+    "MarkerData": {
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "enum": [
+            "stuck",
+            "idea",
+            "done"
+          ],
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "hotkey",
+            "speech",
+            "review"
+          ],
+          "type": "string"
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Spoken phrase, for origin=speech."
+        }
+      },
+      "required": [
+        "label",
+        "origin"
+      ],
+      "title": "MarkerData",
+      "type": "object"
+    },
+    "MarkerEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/MarkerData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "marker",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "MarkerEvent",
+      "type": "object"
+    },
+    "MediaInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "audio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaStreamInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "video": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaStreamInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [],
+      "title": "MediaInfo",
+      "type": "object"
+    },
+    "MediaStreamInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "mime": {
+          "description": "MediaRecorder mime type, e.g. \"audio/webm;codecs=opus\".",
+          "type": "string"
+        },
+        "offset_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Start of the stream on the session clock (first chunk start)."
+        }
+      },
+      "required": [
+        "mime"
+      ],
+      "title": "MediaStreamInfo",
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "description": "Computed deterministically by the engine (pipeline step 7).",
+      "properties": {
+        "churn": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Deleted / added lines, session-wide."
+        },
+        "longest_idle_s": {
+          "default": 0,
+          "minimum": 0,
+          "type": "number"
+        },
+        "runs_before_accept": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "talk_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Speech time / session time; null without audio."
+        },
+        "time_per_phase_s": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "propertyNames": {
+            "enum": [
+              "read",
+              "plan",
+              "code",
+              "debug",
+              "test",
+              "submit"
+            ]
+          },
+          "type": "object"
+        },
+        "time_to_first_passing_run_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "time_to_first_run_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "total_time_s": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "total_time_s"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "PasteData": {
+      "additionalProperties": false,
+      "description": "Size only; the pasted text is visible in the next code snapshot.",
+      "properties": {
+        "chars": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "lines": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "chars",
+        "lines"
+      ],
+      "title": "PasteData",
+      "type": "object"
+    },
+    "PasteEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/PasteData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "paste",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "PasteEvent",
+      "type": "object"
+    },
+    "Ping": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "ping",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Ping",
+      "type": "object"
+    },
+    "Pong": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "pong",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Pong",
+      "type": "object"
+    },
+    "ProblemLoadedData": {
+      "additionalProperties": false,
+      "properties": {
+        "constraints": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "difficulty": {
+          "default": "unknown",
+          "enum": [
+            "easy",
+            "medium",
+            "hard",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "examples": {
+          "items": {
+            "$ref": "#/$defs/Example"
+          },
+          "type": "array"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "slug": {
+          "description": "Platform problem slug; platform + slug keys repeat attempts.",
+          "type": "string"
+        },
+        "statement": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "title": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "platform",
+        "slug",
+        "url",
+        "title"
+      ],
+      "title": "ProblemLoadedData",
+      "type": "object"
+    },
+    "ProblemLoadedEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/ProblemLoadedData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "problem_loaded",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "ProblemLoadedEvent",
+      "type": "object"
+    },
+    "Report": {
+      "additionalProperties": false,
+      "properties": {
+        "communication": {
+          "$ref": "#/$defs/Communication"
+        },
+        "complexity": {
+          "$ref": "#/$defs/Complexity"
+        },
+        "correctness": {
+          "$ref": "#/$defs/Correctness"
+        },
+        "metrics": {
+          "$ref": "#/$defs/Metrics"
+        },
+        "next_practice": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "default": "1.0",
+          "type": "string"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "strengths": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "type": "array"
+        },
+        "suggested_tests": {
+          "description": "Edge cases to consider; never executed.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "time_sinks": {
+          "items": {
+            "$ref": "#/$defs/TimeSink"
+          },
+          "type": "array"
+        },
+        "vs_previous_attempts": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Most recent confirmed repeat only; null otherwise."
+        },
+        "vs_self_assessment": {
+          "description": "Where your read differs from the evidence.",
+          "type": "string"
+        },
+        "weaknesses": {
+          "items": {
+            "$ref": "#/$defs/Finding"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "session_id",
+        "summary",
+        "metrics",
+        "correctness",
+        "complexity",
+        "strengths",
+        "weaknesses",
+        "time_sinks",
+        "communication",
+        "vs_self_assessment"
+      ],
+      "title": "Report",
+      "type": "object"
+    },
+    "RunData": {
+      "additionalProperties": false,
+      "properties": {
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "click",
+                "shortcut"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [],
+      "title": "RunData",
+      "type": "object"
+    },
+    "RunEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/RunData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "run",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind"
+      ],
+      "title": "RunEvent",
+      "type": "object"
+    },
+    "RunResultData": {
+      "additionalProperties": false,
+      "properties": {
+        "actual_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expected_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "failing_input": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "memory_mb": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "passed_cases": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "run_id": {
+          "description": "Id of the `run` event this result answers.",
+          "type": "string"
+        },
+        "runtime_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stdout": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "total_cases": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "verdict": {
+          "enum": [
+            "accepted",
+            "wrong_answer",
+            "runtime_error",
+            "compile_error",
+            "time_limit_exceeded",
+            "memory_limit_exceeded",
+            "output_limit_exceeded",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "verdict_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Verdict text as the platform shows it."
+        }
+      },
+      "required": [
+        "verdict",
+        "run_id"
+      ],
+      "title": "RunResultData",
+      "type": "object"
+    },
+    "RunResultEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/RunResultData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "run_result",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "RunResultEvent",
+      "type": "object"
+    },
+    "ServerMessage": {
+      "description": "Text frame sent by the engine.",
+      "discriminator": {
+        "mapping": {
+          "ack": "#/$defs/Ack",
+          "error": "#/$defs/ErrorMessage",
+          "ping": "#/$defs/Ping",
+          "pong": "#/$defs/Pong",
+          "welcome": "#/$defs/Welcome"
+        },
+        "propertyName": "type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/Welcome"
+        },
+        {
+          "$ref": "#/$defs/Ack"
+        },
+        {
+          "$ref": "#/$defs/Ping"
+        },
+        {
+          "$ref": "#/$defs/Pong"
+        },
+        {
+          "$ref": "#/$defs/ErrorMessage"
+        }
+      ],
+      "title": "ServerMessage"
+    },
+    "SessionEndData": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "enum": [
+            "user_stop",
+            "tab_closed",
+            "navigated_away",
+            "timeout"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ],
+      "title": "SessionEndData",
+      "type": "object"
+    },
+    "SessionEndEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/SessionEndData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "session_end",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "SessionEndEvent",
+      "type": "object"
+    },
+    "SessionStartData": {
+      "additionalProperties": false,
+      "properties": {
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [],
+      "title": "SessionStartData",
+      "type": "object"
+    },
+    "SessionStartEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/SessionStartData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "session_start",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind"
+      ],
+      "title": "SessionStartEvent",
+      "type": "object"
+    },
+    "SpeechData": {
+      "additionalProperties": false,
+      "description": "Transcript segment. `t` is the segment start; `end` is on the same session clock.",
+      "properties": {
+        "cues": {
+          "description": "Cue phrases, e.g. \"wait\".",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "text": {
+          "type": "string"
+        },
+        "words": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Word"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "text",
+        "end"
+      ],
+      "title": "SpeechData",
+      "type": "object"
+    },
+    "SpeechEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/SpeechData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "speech",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "SpeechEvent",
+      "type": "object"
+    },
+    "SubmitData": {
+      "additionalProperties": false,
+      "properties": {
+        "trigger": {
+          "anyOf": [
+            {
+              "enum": [
+                "click",
+                "shortcut"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [],
+      "title": "SubmitData",
+      "type": "object"
+    },
+    "SubmitEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/SubmitData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "submit",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind"
+      ],
+      "title": "SubmitEvent",
+      "type": "object"
+    },
+    "SubmitResultData": {
+      "additionalProperties": false,
+      "properties": {
+        "actual_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "expected_output": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "failing_input": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "memory_mb": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "passed_cases": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "runtime_ms": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "stdout": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "submit_id": {
+          "description": "Id of the `submit` event this result answers.",
+          "type": "string"
+        },
+        "total_cases": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "verdict": {
+          "enum": [
+            "accepted",
+            "wrong_answer",
+            "runtime_error",
+            "compile_error",
+            "time_limit_exceeded",
+            "memory_limit_exceeded",
+            "output_limit_exceeded",
+            "unknown"
+          ],
+          "type": "string"
+        },
+        "verdict_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Verdict text as the platform shows it."
+        }
+      },
+      "required": [
+        "verdict",
+        "submit_id"
+      ],
+      "title": "SubmitResultData",
+      "type": "object"
+    },
+    "SubmitResultEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/SubmitResultData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "submit_result",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind",
+        "data"
+      ],
+      "title": "SubmitResultEvent",
+      "type": "object"
+    },
+    "TimeSink": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "understanding",
+            "input_parsing",
+            "output_format",
+            "algorithm_choice",
+            "implementation",
+            "debugging",
+            "edge_cases",
+            "syntax_api_recall",
+            "communication"
+          ],
+          "type": "string"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "evidence": {
+          "description": "Cited event ids.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "suggestion": {
+          "type": "string"
+        },
+        "time_lost_s": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "what_happened": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "time_lost_s",
+        "category",
+        "what_happened",
+        "suggestion",
+        "evidence"
+      ],
+      "title": "TimeSink",
+      "type": "object"
+    },
+    "UndoData": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "default": 1,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [],
+      "title": "UndoData",
+      "type": "object"
+    },
+    "UndoEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 1.0,
+          "description": "1.0 = exact.",
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        "data": {
+          "$ref": "#/$defs/UndoData"
+        },
+        "id": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "kind": {
+          "const": "undo",
+          "type": "string"
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Capture sequence number; required for source=extension."
+        },
+        "source": {
+          "enum": [
+            "extension",
+            "engine",
+            "whisper",
+            "user"
+          ],
+          "type": "string"
+        },
+        "t": {
+          "description": "Seconds from session_start.",
+          "minimum": 0,
+          "type": "number"
+        },
+        "t_uncertainty": {
+          "default": 0.0,
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "t",
+        "source",
+        "kind"
+      ],
+      "title": "UndoEvent",
+      "type": "object"
+    },
+    "UserInputs": {
+      "additionalProperties": false,
+      "description": "Small inputs inline; larger ones are files under `inputs/`, referenced by relative path.",
+      "properties": {
+        "reference_solution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path under inputs/."
+        },
+        "self_assessment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_time_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tests": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path under inputs/."
+        }
+      },
+      "required": [],
+      "title": "UserInputs",
+      "type": "object"
+    },
+    "Welcome": {
+      "additionalProperties": false,
+      "description": "What the engine already holds: the highest seq / chunk index with no gaps below it.",
+      "properties": {
+        "last_chunk": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "audio",
+              "video"
+            ]
+          },
+          "type": "object"
+        },
+        "last_seq": {
+          "description": "0 when nothing has been received.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "welcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "last_seq",
+        "type"
+      ],
+      "title": "Welcome",
+      "type": "object"
+    },
+    "Word": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "p": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "start": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "w": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "w",
+        "start",
+        "end"
+      ],
+      "title": "Word",
+      "type": "object"
+    }
+  },
+  "$id": "https://interview-coach.local/schema/contract.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "All contract types. Root properties exist only to anchor code generation.",
+  "properties": {
+    "client_message": {
+      "$ref": "#/$defs/ClientMessage"
+    },
+    "event": {
+      "$ref": "#/$defs/Event"
+    },
+    "manifest": {
+      "$ref": "#/$defs/Manifest"
+    },
+    "report": {
+      "$ref": "#/$defs/Report"
+    },
+    "server_message": {
+      "$ref": "#/$defs/ServerMessage"
+    }
+  },
+  "title": "Contract",
+  "type": "object",
+  "x-schema-version": "1.0"
+}

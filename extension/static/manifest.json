@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Interview Coach",
+  "version": "0.1.0",
+  "description": "Records LeetCode practice sessions (code, runs, results, voice) for timed, evidence-backed feedback.",
+  "minimum_chrome_version": "116",
+  "permissions": ["offscreen", "storage", "scripting"],
+  "host_permissions": ["https://leetcode.com/*"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": { "default_popup": "popup.html", "default_title": "Interview Coach" },
+  "content_scripts": [
+    { "matches": ["https://leetcode.com/*"], "js": ["content.js"], "run_at": "document_idle" }
+  ]
+}

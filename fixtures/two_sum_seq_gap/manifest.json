@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "session_id": "fx_two_sum_seq_gap",
+  "capabilities": {
+    "platform": "leetcode",
+    "adapter_version": "0.1.0",
+    "language": "python3",
+    "mode": "practice",
+    "exact_code": true,
+    "run_events": true,
+    "keystrokes": "editor_scoped",
+    "problem_statement": "scraped",
+    "audio": false,
+    "video": false
+  },
+  "clock_origin": {
+    "wall_time_utc": "2026-10-19T15:02:11.250000Z"
+  },
+  "media": {
+    "audio": null,
+    "video": null
+  },
+  "user_inputs": {
+    "self_assessment": "Had the hash map idea right away, then lost a couple of minutes on an ordering bug.",
+    "target_time_s": 600.0,
+    "reference_solution": null,
+    "tests": null
+  },
+  "end": {
+    "final_seq": 31,
+    "final_chunk": {}
+  }
+}

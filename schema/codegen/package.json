@@ -1,0 +1,17 @@
+{
+  "name": "ic-schema-codegen",
+  "private": true,
+  "description": "Generates TypeScript and Dart types from schema/generated/contract.schema.json. Run via `make schema`.",
+  "type": "module",
+  "scripts": {
+    "ts": "node gen-ts.mjs ../generated/contract.schema.json ../../extension/src/generated/contract.ts",
+    "dart": "quicktype --src-lang schema --lang dart --top-level Contract --final-props --out ../../gui/lib/generated/contract.dart ../generated/contract.schema.json",
+    "check-ts": "tsc -p tsconfig.check.json",
+    "version": "node gen-version.mjs ../generated/contract.schema.json ../../extension/src/generated/version.ts ../../gui/lib/generated/version.dart"
+  },
+  "devDependencies": {
+    "json-schema-to-typescript": "16.0.0",
+    "quicktype": "26.0.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2022",
+    "module": "es2022",
+    "types": []
+  },
+  "files": ["../../extension/src/generated/contract.ts", "../../extension/src/generated/version.ts"]
+}

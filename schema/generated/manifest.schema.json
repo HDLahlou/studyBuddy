@@ -1,0 +1,268 @@
+{
+  "$defs": {
+    "Capabilities": {
+      "additionalProperties": false,
+      "description": "What this session's capture could record, so later stages know what to trust or skip.",
+      "properties": {
+        "adapter_version": {
+          "type": "string"
+        },
+        "audio": {
+          "type": "boolean"
+        },
+        "exact_code": {
+          "type": "boolean"
+        },
+        "keystrokes": {
+          "enum": [
+            "none",
+            "editor_scoped"
+          ],
+          "type": "string"
+        },
+        "language": {
+          "description": "Editor language as reported by the platform.",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "practice",
+            "mock_interview",
+            "assessment"
+          ],
+          "type": "string"
+        },
+        "platform": {
+          "description": "\"leetcode\", \"hackerrank\", ...",
+          "type": "string"
+        },
+        "problem_statement": {
+          "enum": [
+            "none",
+            "scraped",
+            "manual"
+          ],
+          "type": "string"
+        },
+        "run_events": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "platform",
+        "adapter_version",
+        "language",
+        "mode",
+        "exact_code",
+        "run_events",
+        "keystrokes",
+        "problem_statement",
+        "audio",
+        "video"
+      ],
+      "title": "Capabilities",
+      "type": "object"
+    },
+    "ClockOrigin": {
+      "additionalProperties": false,
+      "properties": {
+        "wall_time_utc": {
+          "description": "Wall-clock time of session_start (t = 0).",
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "wall_time_utc"
+      ],
+      "title": "ClockOrigin",
+      "type": "object"
+    },
+    "EndInfo": {
+      "additionalProperties": false,
+      "description": "Written when the extension sends `end`. Absent means the session never closed cleanly.",
+      "properties": {
+        "final_chunk": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "audio",
+              "video"
+            ]
+          },
+          "type": "object"
+        },
+        "final_seq": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "final_seq"
+      ],
+      "title": "EndInfo",
+      "type": "object"
+    },
+    "MediaInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "audio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaStreamInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "video": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MediaStreamInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [],
+      "title": "MediaInfo",
+      "type": "object"
+    },
+    "MediaStreamInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "mime": {
+          "description": "MediaRecorder mime type, e.g. \"audio/webm;codecs=opus\".",
+          "type": "string"
+        },
+        "offset_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Start of the stream on the session clock (first chunk start)."
+        }
+      },
+      "required": [
+        "mime"
+      ],
+      "title": "MediaStreamInfo",
+      "type": "object"
+    },
+    "UserInputs": {
+      "additionalProperties": false,
+      "description": "Small inputs inline; larger ones are files under `inputs/`, referenced by relative path.",
+      "properties": {
+        "reference_solution": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path under inputs/."
+        },
+        "self_assessment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "target_time_s": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tests": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Path under inputs/."
+        }
+      },
+      "required": [],
+      "title": "UserInputs",
+      "type": "object"
+    }
+  },
+  "$id": "https://interview-coach.local/schema/manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "capabilities": {
+      "$ref": "#/$defs/Capabilities"
+    },
+    "clock_origin": {
+      "$ref": "#/$defs/ClockOrigin"
+    },
+    "end": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EndInfo"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "media": {
+      "$ref": "#/$defs/MediaInfo"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "type": "string"
+    },
+    "session_id": {
+      "pattern": "^[A-Za-z0-9_-]{1,64}$",
+      "type": "string"
+    },
+    "user_inputs": {
+      "$ref": "#/$defs/UserInputs"
+    }
+  },
+  "required": [
+    "session_id",
+    "capabilities",
+    "clock_origin"
+  ],
+  "title": "Manifest",
+  "type": "object",
+  "x-schema-version": "1.0"
+}

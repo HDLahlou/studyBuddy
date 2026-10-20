@@ -1,0 +1,204 @@
+{
+  "$defs": {
+    "Ack": {
+      "additionalProperties": false,
+      "properties": {
+        "chunk": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ChunkRef"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "seq": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Every event with seq <= this is stored."
+        },
+        "type": {
+          "const": "ack",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Ack",
+      "type": "object"
+    },
+    "ChunkRef": {
+      "additionalProperties": false,
+      "properties": {
+        "index": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stream": {
+          "enum": [
+            "audio",
+            "video"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "stream",
+        "index"
+      ],
+      "title": "ChunkRef",
+      "type": "object"
+    },
+    "ErrorMessage": {
+      "additionalProperties": false,
+      "description": "Origin and token failures close the socket with code 4403 instead of sending an error.",
+      "properties": {
+        "code": {
+          "enum": [
+            "bad_message",
+            "schema_mismatch",
+            "session_mismatch",
+            "frame_too_large",
+            "rate_limited",
+            "disk_full",
+            "internal"
+          ],
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "error",
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "retryable",
+        "type"
+      ],
+      "title": "ErrorMessage",
+      "type": "object"
+    },
+    "Ping": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "ping",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Ping",
+      "type": "object"
+    },
+    "Pong": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "pong",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Pong",
+      "type": "object"
+    },
+    "Welcome": {
+      "additionalProperties": false,
+      "description": "What the engine already holds: the highest seq / chunk index with no gaps below it.",
+      "properties": {
+        "last_chunk": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "enum": [
+              "audio",
+              "video"
+            ]
+          },
+          "type": "object"
+        },
+        "last_seq": {
+          "description": "0 when nothing has been received.",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "session_id": {
+          "type": "string"
+        },
+        "type": {
+          "const": "welcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "session_id",
+        "last_seq",
+        "type"
+      ],
+      "title": "Welcome",
+      "type": "object"
+    }
+  },
+  "$id": "https://interview-coach.local/schema/server_message.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Text frame sent by the engine.",
+  "discriminator": {
+    "mapping": {
+      "ack": "#/$defs/Ack",
+      "error": "#/$defs/ErrorMessage",
+      "ping": "#/$defs/Ping",
+      "pong": "#/$defs/Pong",
+      "welcome": "#/$defs/Welcome"
+    },
+    "propertyName": "type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Welcome"
+    },
+    {
+      "$ref": "#/$defs/Ack"
+    },
+    {
+      "$ref": "#/$defs/Ping"
+    },
+    {
+      "$ref": "#/$defs/Pong"
+    },
+    {
+      "$ref": "#/$defs/ErrorMessage"
+    }
+  ],
+  "title": "ServerMessage",
+  "x-schema-version": "1.0"
+}

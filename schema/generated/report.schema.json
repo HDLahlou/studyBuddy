@@ -1,0 +1,418 @@
+{
+  "$defs": {
+    "Communication": {
+      "additionalProperties": false,
+      "properties": {
+        "clarifying": {
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "testing_out_loud": {
+          "type": "string"
+        },
+        "thinking_aloud": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "thinking_aloud",
+        "clarifying",
+        "testing_out_loud"
+      ],
+      "title": "Communication",
+      "type": "object"
+    },
+    "Complexity": {
+      "additionalProperties": false,
+      "properties": {
+        "better_approach": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "optimal": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "space": {
+          "type": "string"
+        },
+        "time": {
+          "description": "e.g. \"O(n)\"",
+          "type": "string"
+        }
+      },
+      "required": [
+        "time",
+        "space"
+      ],
+      "title": "Complexity",
+      "type": "object"
+    },
+    "Correctness": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted": {
+          "type": "boolean"
+        },
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "explanation": {
+          "description": "AI reasoning about failures and correctness.",
+          "type": "string"
+        },
+        "failed_runs": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "platform_verdict": {
+          "anyOf": [
+            {
+              "enum": [
+                "accepted",
+                "wrong_answer",
+                "runtime_error",
+                "compile_error",
+                "time_limit_exceeded",
+                "memory_limit_exceeded",
+                "output_limit_exceeded",
+                "unknown"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Final submit verdict; null if never submitted."
+        },
+        "runs": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "submits": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "platform_verdict",
+        "accepted",
+        "runs",
+        "failed_runs",
+        "submits",
+        "explanation"
+      ],
+      "title": "Correctness",
+      "type": "object"
+    },
+    "Finding": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "type": "string"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "evidence": {
+          "description": "Cited event ids.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "title",
+        "detail",
+        "evidence"
+      ],
+      "title": "Finding",
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "description": "Computed deterministically by the engine (pipeline step 7).",
+      "properties": {
+        "churn": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Deleted / added lines, session-wide."
+        },
+        "longest_idle_s": {
+          "default": 0,
+          "minimum": 0,
+          "type": "number"
+        },
+        "runs_before_accept": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "talk_ratio": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Speech time / session time; null without audio."
+        },
+        "time_per_phase_s": {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "propertyNames": {
+            "enum": [
+              "read",
+              "plan",
+              "code",
+              "debug",
+              "test",
+              "submit"
+            ]
+          },
+          "type": "object"
+        },
+        "time_to_first_passing_run_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "time_to_first_run_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "total_time_s": {
+          "minimum": 0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "total_time_s"
+      ],
+      "title": "Metrics",
+      "type": "object"
+    },
+    "TimeSink": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "understanding",
+            "input_parsing",
+            "output_format",
+            "algorithm_choice",
+            "implementation",
+            "debugging",
+            "edge_cases",
+            "syntax_api_recall",
+            "communication"
+          ],
+          "type": "string"
+        },
+        "end": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "evidence": {
+          "description": "Cited event ids.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "start": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "suggestion": {
+          "type": "string"
+        },
+        "time_lost_s": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "what_happened": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "start",
+        "end",
+        "time_lost_s",
+        "category",
+        "what_happened",
+        "suggestion",
+        "evidence"
+      ],
+      "title": "TimeSink",
+      "type": "object"
+    }
+  },
+  "$id": "https://interview-coach.local/schema/report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "communication": {
+      "$ref": "#/$defs/Communication"
+    },
+    "complexity": {
+      "$ref": "#/$defs/Complexity"
+    },
+    "correctness": {
+      "$ref": "#/$defs/Correctness"
+    },
+    "metrics": {
+      "$ref": "#/$defs/Metrics"
+    },
+    "next_practice": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "default": "1.0",
+      "type": "string"
+    },
+    "session_id": {
+      "type": "string"
+    },
+    "strengths": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "type": "array"
+    },
+    "suggested_tests": {
+      "description": "Edge cases to consider; never executed.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "time_sinks": {
+      "items": {
+        "$ref": "#/$defs/TimeSink"
+      },
+      "type": "array"
+    },
+    "vs_previous_attempts": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Most recent confirmed repeat only; null otherwise."
+    },
+    "vs_self_assessment": {
+      "description": "Where your read differs from the evidence.",
+      "type": "string"
+    },
+    "weaknesses": {
+      "items": {
+        "$ref": "#/$defs/Finding"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "session_id",
+    "summary",
+    "metrics",
+    "correctness",
+    "complexity",
+    "strengths",
+    "weaknesses",
+    "time_sinks",
+    "communication",
+    "vs_self_assessment"
+  ],
+  "title": "Report",
+  "type": "object",
+  "x-schema-version": "1.0"
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Interview Coach</title><link rel="stylesheet" href="pages.css">
+<style>body { width: 340px; }</style></head>
+<body><main>
+  <h1>Interview Coach</h1>
+  <section id="idle" hidden>
+    <p id="target" class="muted"></p>
+    <div class="row">
+      <select id="mode" aria-label="Session mode">
+        <option value="practice">Practice</option>
+        <option value="mock_interview">Mock interview</option>
+        <option value="assessment">Assessment</option>
+      </select>
+      <button id="start" class="primary">Start recording</button>
+    </div>
+    <p id="mic" class="muted" hidden>Microphone not set up. <a href="#" id="setup">Allow microphone</a> to record your voice.</p>
+  </section>
+  <section id="recording" hidden>
+    <div class="row"><span class="rec">● REC</span><span id="timer" class="timer">0:00</span></div>
+    <p id="recinfo" class="muted"></p>
+    <button id="stop" class="danger">Stop</button>
+  </section>
+  <p id="error" class="error" hidden></p>
+  <h1 style="margin-top:14px">Sessions</h1>
+  <p id="empty" class="muted">No sessions yet.</p>
+  <ul id="sessions" class="sessions"></ul>
+</main><script src="popup.js"></script></body></html>
