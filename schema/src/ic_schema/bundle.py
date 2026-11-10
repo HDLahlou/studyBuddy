@@ -293,6 +293,29 @@ class Bundle:
         lines, _ = _read_jsonl_lines(self.root / "derived" / name)
         return sorted((parse_event(ln) for ln in lines), key=lambda e: e.t)
 
+    def derived_event_files(self) -> list[str]:
+        """Names of derived/*.jsonl event files, sorted."""
+        derived = self.root / "derived"
+        return sorted(p.name for p in derived.glob("*.jsonl")) if derived.is_dir() else []
+
+    def timeline(self, derived: list[str] | None = None) -> list[Event]:
+        """Captured and derived events in timeline order.
+
+        `seq` is delivery order, not time order (decisions 001 D1, 002 E2): a keystroke burst is
+        stored when it ends but stamped with its start. Every consumer orders by this method:
+        `t`, then captured before derived at equal `t`, then `seq`, then `id`. `derived` selects
+        which derived/*.jsonl files to merge (default: all). Raises on duplicate event ids.
+        """
+        events: list[Event] = list(self.events)
+        for name in self.derived_event_files() if derived is None else derived:
+            events.extend(self.read_derived_events(name))
+        seen: set[str] = set()
+        for ev in events:
+            if ev.id in seen:
+                raise BundleError(f"duplicate event id across bundle sources: {ev.id}")
+            seen.add(ev.id)
+        return sorted(events, key=lambda e: (e.t, e.seq is None, e.seq or 0, e.id))
+
 
 def read_bundle(root: Path) -> Bundle:
     manifest = read_manifest(root)

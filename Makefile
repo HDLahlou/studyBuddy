@@ -9,7 +9,8 @@ CODEGEN := schema/codegen
 
 .PHONY: schema schema-json schema-ts schema-dart schema-check codegen-deps \
         test lint typecheck check fixtures-audio clean \
-        extension-deps extension-build extension-test extension-typecheck
+        extension-deps extension-build extension-test extension-typecheck \
+        engine-test engine-transcribe-deps
 
 ## Regenerate JSON Schema, then TypeScript and Dart types from it.
 schema: schema-json schema-ts schema-dart
@@ -39,6 +40,14 @@ schema-check: codegen-deps
 ## Extension tests run first: they write the zip that schema/tests/test_extension_bundle.py reads.
 test: extension-test
 	cd schema && $(UV) run pytest
+	cd engine && $(UV) run pytest
+
+engine-test:
+	cd engine && $(UV) run pytest
+
+## Install faster-whisper (heavy) for real transcription; the default tests don't need it.
+engine-transcribe-deps:
+	$(UV) sync --all-packages --all-extras --all-groups
 
 extension-deps: extension/node_modules/.package-lock.json
 
@@ -57,9 +66,12 @@ extension-typecheck: extension-deps
 lint:
 	$(UV) run --directory schema ruff check src tests ../fixtures/tools
 	$(UV) run --directory schema ruff format --check src tests ../fixtures/tools
+	$(UV) run --directory engine ruff check src tests
+	$(UV) run --directory engine ruff format --check src tests
 
 typecheck: extension-typecheck
 	cd schema && $(UV) run mypy src
+	cd engine && $(UV) run mypy src
 
 check: lint typecheck test schema-check extension-build
 

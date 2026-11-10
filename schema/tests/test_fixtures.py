@@ -19,7 +19,9 @@ from .helpers import FIXTURES, GENERATED
 
 BASIC = FIXTURES / "two_sum_basic"
 SEQ_GAP = FIXTURES / "two_sum_seq_gap"
-ALL = [BASIC, SEQ_GAP]
+LIVE_ORDER = FIXTURES / "two_sum_live_order"
+FAILED_SCRAPE = FIXTURES / "two_sum_failed_scrape"
+ALL = [BASIC, SEQ_GAP, LIVE_ORDER, FAILED_SCRAPE]
 
 
 def validator(name: str) -> Draft202012Validator:
@@ -107,18 +109,22 @@ def test_basic_fixture_story() -> None:
 
 
 def _check_consistency(events: list[Event], derived: list[Event]) -> None:
+    """What the contract guarantees. Seq is delivery order, not time order (001 D1, 002 E2)."""
     ids = [e.id for e in events + derived]
     assert len(ids) == len(set(ids)), "event ids must be unique within a session"
+    seqs = [e.seq for e in events]
+    assert seqs == sorted(seqs) and len(set(seqs)) == len(seqs), "read_bundle returns unique seqs"
     by_id = {e.id: e for e in events}
-    ts = [e.t for e in events]
-    assert ts == sorted(ts), "captured events must be time-ordered by seq"
-    end_t = events[-1].t
+    start = next(e for e in events if e.kind == "session_start")
+    ends = [e for e in events if e.kind == "session_end"]
+    end_t = ends[0].t if ends else max(e.t for e in events)
+    assert start.t == 0
     for e in events + derived:
-        assert 0 <= e.t <= end_t
+        assert 0 <= e.t <= end_t, f"{e.id} outside the session"
         if e.kind == "run_result":
             assert by_id[e.data.run_id].kind == "run" and by_id[e.data.run_id].t < e.t
         if e.kind == "submit_result":
-            assert by_id[e.data.submit_id].kind == "submit"
+            assert by_id[e.data.submit_id].kind == "submit" and by_id[e.data.submit_id].t < e.t
         if e.kind == "speech":
             assert e.t < e.data.end <= end_t
 
@@ -176,3 +182,65 @@ def test_replaying_twice_is_safe(tmp_path: Path) -> None:
     counts = ingest_frames(tmp_path / "s", [frames[0], *body, *body, frames[-1]])
     assert counts[AppendResult.DUPLICATE] == len(body)
     assert read_bundle(tmp_path / "s").complete
+
+
+# --- timeline order -------------------------------------------------------------------------
+
+
+def test_live_order_fixture_is_out_of_time_order_by_seq() -> None:
+    b = read_bundle(LIVE_ORDER)
+    assert any(c.t < a.t for a, c in zip(b.events, b.events[1:], strict=False))
+    assert b.complete and not b.gaps
+
+
+@pytest.mark.parametrize("root", ALL, ids=lambda p: p.name)
+def test_timeline_orders_by_time(root: Path) -> None:
+    b = read_bundle(root)
+    tl = b.timeline()
+    assert [e.t for e in tl] == sorted(e.t for e in tl)
+    assert {e.id for e in tl} == {e.id for e in b.events} | {
+        e.id for n in b.derived_event_files() for e in b.read_derived_events(n)
+    }
+
+
+def test_timeline_merges_derived_and_breaks_ties() -> None:
+    b = read_bundle(BASIC)
+    tl = b.timeline()
+    kinds = {e.kind for e in tl}
+    assert {"speech", "marker", "run", "code_snapshot"} <= kinds
+    # At equal t, captured (seq) sorts before derived (no seq), then by seq.
+    for a, c in zip(tl, tl[1:], strict=False):
+        if a.t == c.t and a.seq is not None and c.seq is not None:
+            assert a.seq < c.seq
+        if a.t == c.t and a.seq is None:
+            assert c.seq is None
+    assert b.timeline(derived=[]) == sorted(b.events, key=lambda e: (e.t, e.seq or 0))
+
+
+def test_live_order_timeline_matches_basic() -> None:
+    def shape(root: Path) -> list[tuple[float, str]]:
+        return [(e.t, e.kind) for e in read_bundle(root).timeline(derived=[])]
+
+    assert shape(LIVE_ORDER) == shape(BASIC)
+
+
+def test_failed_scrape_fixture() -> None:
+    b = read_bundle(FAILED_SCRAPE)
+    unknown = [e for e in b.events if e.kind == "run_result" and e.data.verdict == "unknown"]
+    assert len(unknown) == 1 and unknown[0].confidence == 0
+    run = next(e for e in b.events if e.id == unknown[0].data.run_id)
+    assert unknown[0].t == pytest.approx(run.t + 30)
+
+
+def test_timeline_rejects_duplicate_ids(tmp_path: Path) -> None:
+    import shutil
+
+    from ic_schema.bundle import BundleError
+
+    root = tmp_path / "b"
+    shutil.copytree(BASIC, root)
+    (root / "derived" / "dupe.jsonl").write_text(
+        (root / "derived" / "transcript.jsonl").read_text()
+    )
+    with pytest.raises(BundleError, match="duplicate event id"):
+        read_bundle(root).timeline()

@@ -21,6 +21,17 @@ The same session with transport faults:
 - **Replayed events:** after a reconnect, seqs 21 and 22 were sent again. They're identical, so they're dropped as duplicates.
 - **Resulting state:** `end` arrived with `final_seq` 31, but the bundle is incomplete because of the gap. Audio and video are off.
 
+## `two_sum_live_order/`
+
+The `two_sum_basic` session, renumbered the way the real extension numbers events: in **arrival** order. Keystroke bursts are stored about 1 s after their last key, and results after their panel settles, so `seq` isn't in time order (6 inversions). Use `Bundle.timeline()` to order by time. There's no audio and there are no derived files.
+
+## `two_sum_failed_scrape/`
+
+The same session, in arrival order, except that the first run's result never settled. It's recorded at the 30 s timeout with `verdict: "unknown"` and `confidence: 0` (bug class "failed result scrape").
+
+`tools/make_variant_fixtures.py` generates both variants from `two_sum_basic`.
+
 ## `tools/`
 
 - `make_silent_audio.py` writes silent audio chunks into a bundle through `BundleWriter`.
+- `make_variant_fixtures.py` regenerates `two_sum_live_order` and `two_sum_failed_scrape`.

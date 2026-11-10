@@ -5,16 +5,41 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+/build/
+/dist/
+.coverage
+htmlcov/
 
 # Node
 node_modules/
 
 # Flutter / Dart
 .dart_tool/
+gui/build/
+gui/.flutter-plugins
+gui/.flutter-plugins-dependencies
+gui/**/ephemeral/
+
+# Secrets (API keys, pairing tokens, extension signing keys)
+.env
+.env.*
+!.env.example
+*.pem
+*.crx
+
+# Local session data / exported bundles (fixtures/ stays tracked)
+/data/
+/sessions/
+/*.zip
 
 # IDE
-.idea/workspace.xml
-.idea/shelf/
+.idea/
+.vscode/
+*.iml
+
+# Claude Code local settings
+.claude/settings.local.json
 
 # OS
 .DS_Store

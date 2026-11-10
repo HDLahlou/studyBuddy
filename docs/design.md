@@ -501,7 +501,23 @@ Nothing in capture changes: the statement, examples and constraints are already 
 - **Session language:** the session language locks at the first edit, run or submit. Snapshots before the lock always carry `language`. The `CodeSnapshotData.language` description is clarified, with no version bump. (E14)
 - **Ignored clicks and runtime errors:** clicks on a pending Run/Submit button (styled `cursor-not-allowed`) are ignored by LeetCode, so they aren't recorded as runs. Runtime Error results read the "Last Executed Input" section. Adapter version is 0.3.0. (E15)
 
+**Engine v0 (build-plan step 3).** Full rationale is in [`decisions/003-engine-v0.md`](decisions/003-engine-v0.md). There is no contract change.
+
+- **Derived-file models:** the models for derived files stay in the engine until step 5. `metrics.json` uses the contract's `Metrics`. (C1, C2)
+- **Events are never deleted:** redundant timer snapshots are only excluded from segments, and keystroke bursts become typing spans. (E1)
+- **Phases:** a state machine over `Bundle.timeline()`. The read/plan split uses speech's word overlap with the statement. `code` starts at the first real edit, so a language switch doesn't count. `unknown` results change nothing, and time after the accepted submit is a tail. (E2)
+- **Idle:** more than 45 s with no code change, speech, click or result. The opening reading gap is excluded. (E3, E4)
+- **Transcription:** faster-whisper `small.en` as an optional extra, with the voice-activity filter on. It decodes the stream, not the header. Marker phrases are conservative, and an existing transcript is kept when no transcriber is configured. PyAV is pinned below 19. (E5)
+- **Files and CLI:** joined audio is in `derived/audio.webm`. The `interview-coach import|process|run|show` CLI uses a safe zip import, and each stage's status goes to `derived/pipeline.json`. (E6)
+- **Collapsed timestamps:** ingest warns when timestamps collapse at `t = 0` (the pre-E16 capture clock bug). (E7)
+
 ### Open questions
 
 - **Pause.** The popup design lists start, stop and pause, but the contract has no way to record a pause. Options: add `session_pause` / `session_resume` event kinds (schema minor bump), or treat pause as stop plus a new linked session. Deferred from step 2, where v0 has start and stop only.
 - **Failed result scrape.** How should a run or submit whose result panel never settles be recorded? v0 (step 2) emits `run_result` / `submit_result` with `verdict: "unknown"` and `confidence: 0.0`, and keeps `Capabilities.run_events` meaning "run/submit clicks are hooked". The alternative is an explicit capability (e.g. `Capabilities.run_results`). Revisit when the engine (step 3) starts consuming results, and add a fixture for this bug class then.
+- **Problem statement missed when the Description tab isn't shown.** If recording starts on another sub-page (e.g. a previous submission's result) and the Description tab is never shown, `problem_loaded` carries only the title (`problem_statement: "none"`). This was seen on 2026-10-19, adapter 0.3.0. Options for later:
+  - (a) Keep watching during the session, and record a second, complete `problem_loaded` if the description appears. This needs a "may repeat; latest complete wins" wording in the contract.
+  - (b) Fetch the current problem from the platform's data API, which needs a terms-of-service review.
+  - (c) Prompt the user to open the Description tab.
+
+  Until then, the engine must treat a missing statement as normal: no read/plan split from statement overlap, and no approach analysis. Engine v0 does this: without a statement, `plan` starts at the first substantive speech segment (003 E2).

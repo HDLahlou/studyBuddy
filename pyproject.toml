@@ -1,6 +1,6 @@
 # uv workspace root. Members are added as components gain Python code (engine joins in step 3).
 [tool.uv.workspace]
-members = ["schema"]
+members = ["schema", "engine"]
 
 [tool.ruff]
 line-length = 100
@@ -10,4 +10,4 @@ target-version = "py312"
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["ic_schema"]
+known-first-party = ["ic_schema", "engine"]

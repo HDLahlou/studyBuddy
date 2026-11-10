@@ -18,6 +18,7 @@ Code: `schema/src/ic_schema/`. Fixtures: `fixtures/`.
 - Extension event IDs are `ev_<seq>`. The validator enforces this, so IDs are unique without coordination.
 - `events.jsonl` holds captured events only. Engine and Whisper events go in `derived/*.jsonl`. In the fixture, `derived/transcript.jsonl` holds `speech` and the spoken `marker`.
 - Engine IDs use a short prefix per kind (`sp_`, `mk_`, `df_`, `id_`), so they never collide with `ev_`.
+- **Order by `t`, never by `seq`.** Seq is delivery order. A keystroke burst is stored when it ends but stamped with its start, and a result is stored after its panel settles (002 E2). Every consumer orders events with `Bundle.timeline()`: by `t`, then captured before derived at equal `t`, then `seq`, then `id`. Added in step 3.
 
 | Option | Pros | Cons |
 | --- | --- | --- |

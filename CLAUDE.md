@@ -86,8 +86,12 @@ make test              # contract tests: models, protocol, bundle I/O, fixtures,
 make check             # ruff + mypy --strict + tests + tsc/dart analyze on generated types
 make fixtures-audio    # rebuild silent audio chunks in fixtures/two_sum_basic (needs ffmpeg)
 # engine
-cd engine && uv run pytest
-cd engine && uv run uvicorn engine.app:app --host 127.0.0.1 --port 8765
+cd engine && uv run pytest                       # recorded transcripts only; never a live model
+make engine-transcribe-deps                      # faster-whisper extra (model downloads on first use)
+cd engine && IC_WHISPER=1 uv run pytest -m whisper   # opt-in: real small.en on the fixture audio
+cd engine && uv run interview-coach run SESSION.zip  # import + process (Engine v0 CLI)
+cd engine && uv run interview-coach show SESSION
+cd engine && uv run uvicorn engine.app:app --host 127.0.0.1 --port 8765   # step 5 (API)
 # extension
 cd extension && npm run build    # load extension/dist as unpacked in Chrome
 cd extension && npm test         # vitest; also writes test-output/ zip read by schema/tests/test_extension_bundle.py
